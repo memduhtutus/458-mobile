@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../components/AiModelForm.dart';
+import '../models/survey_form_data.dart';
 
 class SurveyPage extends StatefulWidget {
   const SurveyPage({super.key});
@@ -12,11 +13,15 @@ class _SurveyPageState extends State<SurveyPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _surnameController = TextEditingController();
+  final _dailyLifeBenefitsController = TextEditingController();
   String _selectedEducation = 'High School';
   double _sliderValue = 0.0;
 
   // List to store selected AI models
   final List<String> _selectedAIModels = [];
+
+  final Map<String, String> _aiModelResponses = {};
+  final Map<String, String> _customModelNames = {};
 
   final List<String> _educationLevels = [
     'High School',
@@ -38,18 +43,40 @@ class _SurveyPageState extends State<SurveyPage> {
   void dispose() {
     _nameController.dispose();
     _surnameController.dispose();
+    _dailyLifeBenefitsController.dispose();
     super.dispose();
   }
 
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
-      print('Name: ${_nameController.text}');
-      print('Surname: ${_surnameController.text}');
-      print('Education: $_selectedEducation');
-      print('Selected AI Models:');
-      for (var model in _selectedAIModels) {
-        print('- $model');
-      }
+      final List<AIModelResponse> aiModelResponses =
+          _selectedAIModels.map((model) {
+        return AIModelResponse(
+          modelName: model == 'Other'
+              ? _customModelNames[model] ?? 'Unknown Model'
+              : model,
+          cons: _aiModelResponses[model] ?? '',
+        );
+      }).toList();
+
+      final surveyData = SurveyFormData(
+        name: _nameController.text,
+        surname: _surnameController.text,
+        educationLevel: _selectedEducation,
+        gender: _sliderValue == 0
+            ? 'You are nonbinary'
+            : _sliderValue > 0
+                ? 'You are ${(_sliderValue).round()}% man'
+                : 'You are ${(_sliderValue.abs()).round()}% woman',
+        genderValue: _sliderValue,
+        selectedAIModels: aiModelResponses,
+        dailyLifeBenefits: _dailyLifeBenefitsController.text,
+      );
+
+      // Print the formatted survey data
+      print('\n${surveyData.toString()}');
+
+      // TODO: Send the data to your backend or process it further
     }
   }
 
@@ -57,8 +84,17 @@ class _SurveyPageState extends State<SurveyPage> {
     if (value != null && value.isNotEmpty) {
       setState(() {
         _selectedAIModels.add(value);
+        if (value == 'Other') {
+          _customModelNames[value] = '';
+        }
       });
     }
+  }
+
+  void _updateCustomModelName(String model, String name) {
+    setState(() {
+      _customModelNames[model] = name;
+    });
   }
 
   @override
@@ -178,16 +214,18 @@ class _SurveyPageState extends State<SurveyPage> {
                     child: AiModelForm(
                       modelName: model,
                       onChange: (value) {
-                        // Handle the defects/cons text change
                         setState(() {
-                          // You might want to store these values in a map or list
-                          // For now, we'll just print it
-                          print('Defects for $model: $value');
+                          _aiModelResponses[model] = value;
                         });
                       },
+                      onModelNameChange: model == 'Other'
+                          ? (value) => _updateCustomModelName(model, value)
+                          : null,
                       onDelete: () {
                         setState(() {
                           _selectedAIModels.remove(model);
+                          _aiModelResponses.remove(model);
+                          _customModelNames.remove(model);
                         });
                       },
                     ),
@@ -205,6 +243,24 @@ class _SurveyPageState extends State<SurveyPage> {
                   );
                 }).toList(),
                 onChanged: _addNewAIModel,
+              ),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _dailyLifeBenefitsController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText:
+                      'What are the daily life benefits of using AI models?',
+                  border: OutlineInputBorder(),
+                  hintText:
+                      'Please describe how AI models benefit your daily life...',
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please share your thoughts on AI benefits';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               ElevatedButton(
