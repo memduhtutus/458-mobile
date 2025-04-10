@@ -1,0 +1,6 @@
+Flask
+Flask-Session
+Authlib
+webdriver-manager
+google-api-python-client
+google-auth-oauthlib
