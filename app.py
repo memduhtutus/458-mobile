@@ -3,8 +3,10 @@ from authlib.integrations.flask_client import OAuth
 from flask_session import Session 
 import smtplib
 from email.mime.text import MIMEText
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # Send survey email
 def send_mail(name, surname, birth, education, city, gender, ai_defects, freetext):
@@ -85,17 +87,16 @@ users = {
 @app.route('/', methods=['GET', 'POST'])
 def login():
     """Handles manual login with email/password"""
-    error = None
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         if username in users and users[username] == password:
             session['user'] = {"email": username}
-            return redirect(url_for('success'))
+            return jsonify({"status": "success", "message": "Login successful"}), 200
         else:
-            error = "Invalid email/phone number or password."
+            return jsonify({"status": "error", "message": "Invalid email/phone number or password"}), 401
     
-    return render_template('login.html', error=error)
+    return jsonify({"status": "error", "message": "Method not allowed"}), 405
 
 @app.route('/login/google')
 def login_google():

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_button/sign_button.dart';
 import '../constants.dart';
+import '../api/api_service.dart';
+import '../models/login_request.dart';
 import 'SurveyPage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -60,21 +62,44 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
-      if (_emailController.text == AppConstants.mockEmail &&
-          _passwordController.text == AppConstants.mockPassword) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const SurveyPage()),
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        final loginRequest = LoginRequest(
+          email: _emailController.text,
+          password: _passwordController.text,
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid email or password'),
-            backgroundColor: Colors.red,
-          ),
-        );
+
+        final response = await ApiService().login(loginRequest);
+
+        // Store the token if needed
+        final token = response['token'];
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SurveyPage()),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -153,17 +178,19 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: _handleLogin,
+                    onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text(
+                            'Login',
+                            style: TextStyle(fontSize: 16),
+                          ),
                   ),
                   const SizedBox(height: 16),
                   TextButton(

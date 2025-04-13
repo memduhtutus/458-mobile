@@ -4,3 +4,4 @@ Authlib
 webdriver-manager
 google-api-python-client
 google-auth-oauthlib
+Flask-CORS
