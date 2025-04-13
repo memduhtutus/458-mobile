@@ -1,15 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from authlib.integrations.flask_client import OAuth
+from flask_session import Session 
 import os
-from flask_session import Session  
 import base64
+import smtplib
 from email.mime.text import MIMEText
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
 
 app = Flask(__name__)
-
 
 # Gmail API scope
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.send']
@@ -52,11 +49,15 @@ AI Models Tried & Defects:
 
     body += f"\nBeneficial AI Use Case:\n{freetext}"
 
-    service = get_gmail_service()
-    message = create_message("me", "validation458@proton.me", "AI Survey", body)
-    service.users().messages().send(userId="me", body=message).execute()
+    msg = MIMEText(body)
+    msg["Subject"] = "AI Survey"
+    msg["From"] = "atomkalemdar@gmail.com"
+    msg["To"] = "validation458@proton.me"
 
-# API endpoint to receive survey data
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login("atomkalemdar@gmail.com", "sbac mlxp dzgw sgmh")
+        server.send_message(msg)
+
 @app.route('/submit-survey', methods=['POST'])
 def submit_survey():
     data = request.json
@@ -74,25 +75,22 @@ def submit_survey():
             education=data['education'],
             city=data['city'],
             gender=data['gender'],
-            ai_defects=data['ai_defects'],  # List of {"model": "...", "defect": "..."}
+            ai_defects=data['ai_defects'],
             freetext=data['freetext']
         )
         return jsonify({"status": "success"}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# ✅ Secure session configuration
-app.secret_key = "your-strong-secret-key"  # Replace with a strong, random key
+app.secret_key = "your-strong-secret-key"
 app.config["SESSION_TYPE"] = "filesystem"  
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_USE_SIGNER"] = True
 app.config["SESSION_KEY_PREFIX"] = "oauth_"
 Session(app)  
 
-# ✅ Initialize OAuth
 oauth = OAuth(app)
 
-# ✅ Google OAuth Configuration (Fixed)
 app.config['GOOGLE_CLIENT_ID'] = "395889624025-auvbub026chb33h5sqmooi3plmmpcs9o.apps.googleusercontent.com"
 app.config['GOOGLE_CLIENT_SECRET'] = "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"
 google = oauth.register(
@@ -104,7 +102,6 @@ google = oauth.register(
     userinfo_endpoint="https://www.googleapis.com/oauth2/v3/userinfo"
 )
 
-# ✅ Dummy user credentials (for manual login)
 users = {
     "user@example.com": "password123",
     "1234567890": "mypassword"
@@ -118,7 +115,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         if username in users and users[username] == password:
-            session['user'] = {"email": username}  # Store user info
+            session['user'] = {"email": username}
             return redirect(url_for('success'))
         else:
             error = "Invalid email/phone number or password."
@@ -135,7 +132,7 @@ def google_auth():
     """Handles Google OAuth callback"""
     token = google.authorize_access_token()
     user_info = google.get('https://www.googleapis.com/oauth2/v3/userinfo').json()
-    session['user'] = user_info  # Store user info in session
+    session['user'] = user_info
     return redirect(url_for('success'))
 
 @app.route('/success')
