@@ -18,7 +18,11 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId:
+        '395889624025-auvbub026chb33h5sqmooi3plmmpcs9o.apps.googleusercontent.com',
+    scopes: ['email', 'profile'],
+  );
   bool _isLoading = false;
 
   @override
@@ -37,28 +41,44 @@ class _LoginPageState extends State<LoginPage> {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
+        setState(() {
+          _isLoading = false;
+        });
         return;
       }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      // TODO: Use these tokens to authenticate with your backend
-      print('Google Sign In Success');
-      print('Email: ${googleUser.email}');
-      print('ID Token: ${googleAuth.idToken}');
+      // Call the backend authentication endpoint with the ID token
+      final response = await ApiService().authenticateWithGoogle();
+
+      if (response['status'] == 'success') {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const SurveyPage()),
+          );
+        }
+      } else {
+        throw Exception(response['message'] ?? 'Authentication failed');
+      }
     } catch (error) {
       print('Google Sign In Error: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to sign in with Google'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to sign in with Google: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -212,10 +232,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 24),
                   SignInButton(
-                      buttonType: ButtonType.google,
-                      onPressed: () {
-                        print('click');
-                      })
+                    buttonType: ButtonType.google,
+                    onPressed: _isLoading ? null : _handleGoogleSignIn,
+                  )
                 ],
               ),
             ),

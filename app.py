@@ -9,22 +9,20 @@ app = Flask(__name__)
 CORS(app)
 
 # Send survey email
-def send_mail(name, surname, birth, education, city, gender, ai_defects, freetext):
+def send_mail(name, surname, education, gender, ai_models, daily_life_benefits):
     body = f"""
 AI Survey Submission
 ---------------------
 Name         : {name} {surname}
-Birth Date   : {birth}
 Education    : {education}
-City         : {city}
 Gender       : {gender}
 
-AI Models Tried & Defects:
+AI Models & Their Cons:
 """
-    for item in ai_defects:
-        body += f" - {item['model']}: {item['defect']}\n"
+    for model in ai_models:
+        body += f" - {model['modelName']}: {model['cons']}\n"
 
-    body += f"\nBeneficial AI Use Case:\n{freetext}"
+    body += f"\nDaily Life Benefits:\n{daily_life_benefits}"
 
     msg = MIMEText(body)
     msg["Subject"] = "AI Survey"
@@ -35,10 +33,10 @@ AI Models Tried & Defects:
         server.login("atomkalemdar@gmail.com", "sbac mlxp dzgw sgmh")
         server.send_message(msg)
 
-@app.route('/submit-survey', methods=['POST'])
+@app.route('/survey', methods=['POST'])
 def submit_survey():
     data = request.json
-    required_fields = ['name', 'surname', 'birth', 'education', 'city', 'gender', 'ai_defects', 'freetext']
+    required_fields = ['name', 'surname', 'educationLevel', 'gender', 'genderValue', 'selectedAIModels', 'dailyLifeBenefits']
 
     # Validate incoming data
     if not all(field in data for field in required_fields):
@@ -48,14 +46,12 @@ def submit_survey():
         send_mail(
             name=data['name'],
             surname=data['surname'],
-            birth=data['birth'],
-            education=data['education'],
-            city=data['city'],
+            education=data['educationLevel'],
             gender=data['gender'],
-            ai_defects=data['ai_defects'],
-            freetext=data['freetext']
+            ai_models=data['selectedAIModels'],
+            daily_life_benefits=data['dailyLifeBenefits']
         )
-        return jsonify({"status": "success"}), 200
+        return jsonify({"status": "success"}), 201
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -75,8 +71,10 @@ google = oauth.register(
     client_id=app.config['GOOGLE_CLIENT_ID'],
     client_secret=app.config['GOOGLE_CLIENT_SECRET'],
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-    client_kwargs={'scope': 'openid email profile'},
-    userinfo_endpoint="https://www.googleapis.com/oauth2/v3/userinfo"
+    client_kwargs={
+        'scope': 'openid email profile',
+        'redirect_uri': 'http://localhost:5000/auth/google'
+    }
 )
 
 users = {
@@ -103,13 +101,22 @@ def login_google():
     """Redirect user to Google for authentication"""
     return google.authorize_redirect(url_for('google_auth', _external=True))
 
-@app.route('/auth/google')
+@app.route('/auth/google', methods=['POST'])
 def google_auth():
-    """Handles Google OAuth callback"""
-    token = google.authorize_access_token()
-    user_info = google.get('https://www.googleapis.com/oauth2/v3/userinfo').json()
-    session['user'] = user_info
-    return redirect(url_for('success'))
+    """Handles Google OAuth callback for Flutter app"""
+    try:
+        token = google.authorize_access_token()
+        user_info = google.get('https://www.googleapis.com/oauth2/v3/userinfo').json()
+        session['user'] = user_info
+        return jsonify({
+            "status": "success",
+            "user": user_info
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 400
 
 @app.route('/success')
 def success():

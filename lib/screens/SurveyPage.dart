@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../components/AiModelForm.dart';
 import '../models/survey_form_data.dart';
+import '../api/api_service.dart';
 
 class SurveyPage extends StatefulWidget {
   const SurveyPage({super.key});
@@ -16,6 +17,7 @@ class _SurveyPageState extends State<SurveyPage> {
   final _dailyLifeBenefitsController = TextEditingController();
   String _selectedEducation = 'High School';
   double _sliderValue = 0.0;
+  bool _isSubmitting = false;
 
   // List to store selected AI models
   final List<String> _selectedAIModels = [];
@@ -49,36 +51,74 @@ class _SurveyPageState extends State<SurveyPage> {
     super.dispose();
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      final List<AIModelResponse> aiModelResponses =
-          _selectedAIModels.map((model) {
-        return AIModelResponse(
-          modelName: model == 'Other'
-              ? _customModelNames[model] ?? 'Unknown Model'
-              : model,
-          cons: _aiModelResponses[model] ?? '',
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      try {
+        final List<AIModelResponse> aiModelResponses =
+            _selectedAIModels.map((model) {
+          return AIModelResponse(
+            modelName: model == 'Other'
+                ? _customModelNames[model] ?? 'Unknown Model'
+                : model,
+            cons: _aiModelResponses[model] ?? '',
+          );
+        }).toList();
+
+        final surveyData = SurveyFormData(
+          name: _nameController.text,
+          surname: _surnameController.text,
+          educationLevel: _selectedEducation,
+          gender: _sliderValue == 0
+              ? 'You are nonbinary'
+              : _sliderValue > 0
+                  ? 'You are ${(_sliderValue).round()}% man'
+                  : 'You are ${(_sliderValue.abs()).round()}% woman',
+          genderValue: _sliderValue,
+          selectedAIModels: aiModelResponses,
+          dailyLifeBenefits: _dailyLifeBenefitsController.text,
         );
-      }).toList();
 
-      final surveyData = SurveyFormData(
-        name: _nameController.text,
-        surname: _surnameController.text,
-        educationLevel: _selectedEducation,
-        gender: _sliderValue == 0
-            ? 'You are nonbinary'
-            : _sliderValue > 0
-                ? 'You are ${(_sliderValue).round()}% man'
-                : 'You are ${(_sliderValue.abs()).round()}% woman',
-        genderValue: _sliderValue,
-        selectedAIModels: aiModelResponses,
-        dailyLifeBenefits: _dailyLifeBenefitsController.text,
-      );
+        final apiService = ApiService();
+        final response = await apiService.submitSurvey(surveyData);
 
-      // Print the formatted survey data
-      print('\n${surveyData.toString()}');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Survey submitted successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
 
-      // TODO: Send the data to your backend or process it further
+          // Clear the form
+          _formKey.currentState?.reset();
+          setState(() {
+            _selectedAIModels.clear();
+            _aiModelResponses.clear();
+            _customModelNames.clear();
+            _sliderValue = 0.0;
+            _selectedEducation = 'High School';
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error submitting survey: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+      }
     }
   }
 
@@ -269,14 +309,26 @@ class _SurveyPageState extends State<SurveyPage> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _selectedAIModels.isEmpty ? null : _submitForm,
+                onPressed: _selectedAIModels.isEmpty || _isSubmitting
+                    ? null
+                    : _submitForm,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text(
-                  'Submit Survey',
-                  style: TextStyle(fontSize: 16),
-                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text(
+                        'Submit Survey',
+                        style: TextStyle(fontSize: 16),
+                      ),
               ),
             ],
           ),

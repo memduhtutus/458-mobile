@@ -31,22 +31,49 @@ class ApiService {
   }
 
   // Submit survey method
-  Future<void> submitSurvey(SurveyFormData surveyData, String token) async {
+  Future<Map<String, dynamic>> submitSurvey(SurveyFormData surveyData) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/survey'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
         },
         body: jsonEncode(surveyData.toJson()),
       );
 
-      if (response.statusCode != 201) {
-        throw Exception('Failed to submit survey: ${response.statusCode}');
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        return responseData;
+      } else if (response.statusCode == 400) {
+        throw Exception(responseData['error'] ?? 'Missing required fields');
+      } else {
+        throw Exception(responseData['message'] ??
+            'Failed to submit survey: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error submitting survey: $e');
+    }
+  }
+
+  // Google authentication method
+  Future<Map<String, dynamic>> authenticateWithGoogle() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/google'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception(
+            'Failed to authenticate with Google: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error during Google authentication: $e');
     }
   }
 }
