@@ -1,8 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from authlib.integrations.flask_client import OAuth
 from flask_session import Session 
-import os
-import base64
 import smtplib
 from email.mime.text import MIMEText
 
@@ -10,26 +8,6 @@ app = Flask(__name__)
 
 # Gmail API scope
 GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-
-# Authenticate with Gmail API
-def get_gmail_service():
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', GMAIL_SCOPES)
-    else:
-        flow = InstalledAppFlow.from_client_secrets_file('credentials.json', GMAIL_SCOPES)
-        creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-    return build('gmail', 'v1', credentials=creds)
-
-# Create raw email message
-def create_message(sender, to, subject, body_text):
-    message = MIMEText(body_text)
-    message['to'] = to
-    message['from'] = sender
-    message['subject'] = subject
-    encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
-    return {'raw': encoded_message}
 
 # Send survey email
 def send_mail(name, surname, birth, education, city, gender, ai_defects, freetext):
