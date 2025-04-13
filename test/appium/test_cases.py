@@ -335,6 +335,6 @@ class FlutterLoginTest(unittest.TestCase):
         time.sleep(2)
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    suite.addTest(FlutterLoginTest('test_orientation_change_persistence'))
+    # Create a test suite with all tests from FlutterLoginTest
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(FlutterLoginTest)
     unittest.TextTestRunner(verbosity=2).run(suite)

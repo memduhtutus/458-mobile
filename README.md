@@ -61,3 +61,50 @@ Additionally, this project includes an Appium-based test automation suite that v
    ```
 
 5. **Testing with Appium**
+   
+   a. **Prerequisites:**
+   ```bash
+   # Install Appium and required dependencies
+   npm install -g appium
+   pip install Appium-Python-Client
+   ```
+   
+   b. **Configure Device Settings:**
+   
+   The test suite is configured for iOS simulators. You may need to adjust device settings in `test/appium/test_cases.py` to match your environment:
+   
+   ```python
+   options.load_capabilities({
+       "platformName": "iOS",
+       "appium:deviceName": "iPhone 16 Pro Max",  # Adjust to match your simulator
+       "appium:platformVersion": "18.0",          # Update to your iOS version
+       "appium:automationName": "XCUITest",
+       "appium:app": "/path/to/your/app/build/ios/iphonesimulator/Runner.app"
+   })
+   ```
+   
+   c. **Build the App for Testing:**
+   ```bash
+   flutter build ios --simulator
+   ```
+   
+   d. **Start Appium Server:**
+   ```bash
+   appium
+   ```
+   
+   e. **Run Tests:**
+   ```bash
+   cd test/appium
+   python test_cases.py
+   ```
+   
+   f. **Run Specific Tests:**
+   
+   To run individual tests, update the main block in `test_cases.py`:
+   ```python
+   if __name__ == '__main__':
+       suite = unittest.TestSuite()
+       suite.addTest(FlutterLoginTest('test_login'))  # Replace with desired test name
+       unittest.TextTestRunner(verbosity=2).run(suite)
+   ```
