@@ -6,9 +6,6 @@ from email.mime.text import MIMEText
 
 app = Flask(__name__)
 
-# Gmail API scope
-GMAIL_SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-
 # Send survey email
 def send_mail(name, surname, birth, education, city, gender, ai_defects, freetext):
     body = f"""
