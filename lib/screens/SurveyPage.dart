@@ -39,6 +39,8 @@ class _SurveyPageState extends State<SurveyPage> {
     'Other'
   ];
 
+  String? _selectedDropdownValue; // new state variable for dropdown
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -77,17 +79,6 @@ class _SurveyPageState extends State<SurveyPage> {
       print('\n${surveyData.toString()}');
 
       // TODO: Send the data to your backend or process it further
-    }
-  }
-
-  void _addNewAIModel(String? value) {
-    if (value != null && value.isNotEmpty) {
-      setState(() {
-        _selectedAIModels.add(value);
-        if (value == 'Other') {
-          _customModelNames[value] = '';
-        }
-      });
     }
   }
 
@@ -230,19 +221,33 @@ class _SurveyPageState extends State<SurveyPage> {
                       },
                     ),
                   )),
-              // Add new dropdown for AI model selection
+              // Add new dropdown for AI model selection (always displaying "Select AI Model" as its hint)
               DropdownButtonFormField<String>(
+                value: null, // always remain null to display the hint
                 decoration: const InputDecoration(
                   labelText: 'Select AI Model',
                   border: OutlineInputBorder(),
                 ),
+                hint: const Text('Select AI Model'),
                 items: _aiModels.map((String model) {
                   return DropdownMenuItem<String>(
                     value: model,
                     child: Text(model),
                   );
                 }).toList(),
-                onChanged: _addNewAIModel,
+                onChanged: (value) {
+                  if (value != null && value.isNotEmpty) {
+                    setState(() {
+                      // Do not update the dropdown value; just add the selected model
+                      if (!_selectedAIModels.contains(value)) {
+                        _selectedAIModels.add(value);
+                        if (value == 'Other') {
+                          _customModelNames[value] = '';
+                        }
+                      }
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 24),
               TextFormField(
@@ -264,7 +269,7 @@ class _SurveyPageState extends State<SurveyPage> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _submitForm,
+                onPressed: _selectedAIModels.isEmpty ? null : _submitForm,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
