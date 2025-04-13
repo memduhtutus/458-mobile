@@ -37,8 +37,8 @@ class _SurveyPageState extends State<SurveyPage> {
     'ChatGPT',
     'Claude',
     'Gemini',
-    'Copilot',
-    'Other'
+    'Copilot'
+    // "Other" removed
   ];
 
   String? _selectedDropdownValue; // new state variable for dropdown
@@ -263,27 +263,36 @@ class _SurveyPageState extends State<SurveyPage> {
                   )),
               // Add new dropdown for AI model selection (always displaying "Select AI Model" as its hint)
               DropdownButtonFormField<String>(
-                value: null, // always remain null to display the hint
+                value: null, // Always remain null to display the hint
                 decoration: const InputDecoration(
                   labelText: 'Select AI Model',
                   border: OutlineInputBorder(),
                 ),
                 hint: const Text('Select AI Model'),
+                // Override the displayed widget for every item via selectedItemBuilder:
+                selectedItemBuilder: (BuildContext context) {
+                  return _aiModels.map((String model) {
+                    return const Text('Select AI Model');
+                  }).toList();
+                },
                 items: _aiModels.map((String model) {
                   return DropdownMenuItem<String>(
                     value: model,
-                    child: Text(model),
+                    enabled: !_selectedAIModels.contains(model),
+                    child: Text(
+                      model,
+                      style: _selectedAIModels.contains(model)
+                          ? const TextStyle(color: Colors.grey)
+                          : null,
+                    ),
                   );
                 }).toList(),
                 onChanged: (value) {
                   if (value != null && value.isNotEmpty) {
                     setState(() {
-                      // Do not update the dropdown value; just add the selected model
+                      // Only add the model if it's not already selected
                       if (!_selectedAIModels.contains(value)) {
                         _selectedAIModels.add(value);
-                        if (value == 'Other') {
-                          _customModelNames[value] = '';
-                        }
                       }
                     });
                   }
@@ -291,14 +300,14 @@ class _SurveyPageState extends State<SurveyPage> {
               ),
               const SizedBox(height: 24),
               TextFormField(
+                key: const Key('dailyLifeBenefitsField'),
                 controller: _dailyLifeBenefitsController,
                 maxLines: 4,
                 decoration: const InputDecoration(
                   labelText:
                       'What are the daily life benefits of using AI models?',
                   border: OutlineInputBorder(),
-                  hintText:
-                      'Please describe how AI models benefit your daily life...',
+                
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
