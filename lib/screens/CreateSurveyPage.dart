@@ -1,5 +1,17 @@
 import 'package:flutter/material.dart';
 
+class Condition {
+  final int questionIndex;
+  final String operator;
+  final dynamic value;
+
+  Condition({
+    required this.questionIndex,
+    required this.operator,
+    required this.value,
+  });
+}
+
 class Question {
   final String type;
   final String text;
@@ -8,6 +20,7 @@ class Question {
   final String? selectedRadio;
   final int? rating;
   final String? selectedDropdown;
+  final Condition? condition;
 
   Question({
     required this.type,
@@ -17,6 +30,7 @@ class Question {
     this.selectedRadio,
     this.rating,
     this.selectedDropdown,
+    this.condition,
   });
 }
 
@@ -34,6 +48,10 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
   final _optionController = TextEditingController();
   String _selectedQuestionType = 'text';
   List<String> _currentOptions = [];
+  bool _isConditional = false;
+  int? _selectedConditionQuestion;
+  String _selectedOperator = 'equals';
+  String _selectedConditionValue = '';
 
   @override
   void dispose() {
@@ -57,10 +75,20 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
             selectedRadio: _selectedQuestionType == 'radio' ? null : null,
             rating: _selectedQuestionType == 'rating' ? 0 : null,
             selectedDropdown: _selectedQuestionType == 'dropdown' ? null : null,
+            condition: _isConditional && _selectedConditionQuestion != null
+                ? Condition(
+                    questionIndex: _selectedConditionQuestion!,
+                    operator: _selectedOperator,
+                    value: _selectedConditionValue,
+                  )
+                : null,
           ),
         );
         _questionController.clear();
         _currentOptions.clear();
+        _isConditional = false;
+        _selectedConditionQuestion = null;
+        _selectedConditionValue = '';
       });
     }
   }
@@ -72,6 +100,76 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
         _optionController.clear();
       });
     }
+  }
+
+  Widget _buildConditionalUI() {
+    if (!_isConditional || _questions.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      margin: const EdgeInsets.only(top: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Conditional Logic',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButton<int>(
+              value: _selectedConditionQuestion,
+              hint: const Text('Select previous question'),
+              items: _questions.asMap().entries.map((entry) {
+                return DropdownMenuItem<int>(
+                  value: entry.key,
+                  child: Text('${entry.key + 1}. ${entry.value.text}'),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedConditionQuestion = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            DropdownButton<String>(
+              value: _selectedOperator,
+              items: const [
+                DropdownMenuItem(value: 'equals', child: Text('Equals')),
+                DropdownMenuItem(
+                    value: 'not_equals', child: Text('Not Equals')),
+                DropdownMenuItem(value: 'contains', child: Text('Contains')),
+                DropdownMenuItem(
+                    value: 'greater_than', child: Text('Greater Than')),
+                DropdownMenuItem(value: 'less_than', child: Text('Less Than')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedOperator = value!;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            if (_selectedConditionQuestion != null)
+              TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Condition Value',
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedConditionValue = value;
+                  });
+                },
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _saveSurvey() {
@@ -117,6 +215,81 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                           children: _questions.asMap().entries.map((entry) {
                             final index = entry.key;
                             final question = entry.value;
+
+                            // Check if question should be shown based on conditions
+                            if (question.condition != null) {
+                              final condition = question.condition!;
+                              final previousQuestion =
+                                  _questions[condition.questionIndex];
+                              bool shouldShow = false;
+
+                              switch (previousQuestion.type) {
+                                case 'checkbox':
+                                  final selectedOptions =
+                                      checkboxStates[condition.questionIndex] ??
+                                          {};
+                                  shouldShow =
+                                      selectedOptions[condition.value] ?? false;
+                                  break;
+                                case 'radio':
+                                  shouldShow =
+                                      (radioStates[condition.questionIndex] ??
+                                              '') ==
+                                          condition.value;
+                                  break;
+                                case 'rating':
+                                  final rating =
+                                      ratingStates[condition.questionIndex] ??
+                                          0;
+                                  final compareValue =
+                                      int.tryParse(condition.value) ?? 0;
+                                  switch (condition.operator) {
+                                    case 'equals':
+                                      shouldShow = rating == compareValue;
+                                      break;
+                                    case 'not_equals':
+                                      shouldShow = rating != compareValue;
+                                      break;
+                                    case 'greater_than':
+                                      shouldShow = rating > compareValue;
+                                      break;
+                                    case 'less_than':
+                                      shouldShow = rating < compareValue;
+                                      break;
+                                    default:
+                                      shouldShow = false;
+                                  }
+                                  break;
+                                case 'dropdown':
+                                  shouldShow = (dropdownStates[
+                                              condition.questionIndex] ??
+                                          '') ==
+                                      condition.value;
+                                  break;
+                                case 'text':
+                                  final text =
+                                      dropdownStates[condition.questionIndex] ??
+                                          '';
+                                  switch (condition.operator) {
+                                    case 'equals':
+                                      shouldShow = text == condition.value;
+                                      break;
+                                    case 'not_equals':
+                                      shouldShow = text != condition.value;
+                                      break;
+                                    case 'contains':
+                                      shouldShow =
+                                          text.contains(condition.value);
+                                      break;
+                                    default:
+                                      shouldShow = false;
+                                  }
+                                  break;
+                              }
+
+                              if (!shouldShow) return const SizedBox.shrink();
+                            }
+
                             return Card(
                               margin: const EdgeInsets.only(bottom: 16),
                               child: Padding(
@@ -131,6 +304,17 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
+                                    if (question.condition != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 4),
+                                        child: Text(
+                                          'Shown when question ${question.condition!.questionIndex + 1} ${question.condition!.operator} ${question.condition!.value}',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ),
                                     const SizedBox(height: 8),
                                     if (question.type == 'text')
                                       TextField(
@@ -257,7 +441,6 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                         const SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: () {
-                            // TODO: Implement actual survey saving logic
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -370,6 +553,17 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                       ],
                     ],
                     const SizedBox(height: 16),
+                    CheckboxListTile(
+                      title: const Text('Make this question conditional'),
+                      value: _isConditional,
+                      onChanged: (value) {
+                        setState(() {
+                          _isConditional = value ?? false;
+                        });
+                      },
+                    ),
+                    _buildConditionalUI(),
+                    const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _addQuestion,
                       child: const Text('Add Question'),
@@ -396,22 +590,27 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                         },
                       ),
                       isThreeLine: ['checkbox', 'radio', 'dropdown']
-                          .contains(question.type),
-                      subtitle: ['checkbox', 'radio', 'dropdown']
-                              .contains(question.type)
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Type: ${question.type}'),
-                                Wrap(
-                                  spacing: 8,
-                                  children: question.options!.map((option) {
-                                    return Chip(label: Text(option));
-                                  }).toList(),
-                                ),
-                              ],
-                            )
-                          : Text('Type: ${question.type}'),
+                              .contains(question.type) ||
+                          question.condition != null,
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Type: ${question.type}'),
+                          if (question.condition != null)
+                            Text(
+                              'Condition: Question ${question.condition!.questionIndex + 1} ${question.condition!.operator} ${question.condition!.value}',
+                              style: const TextStyle(color: Colors.grey),
+                            ),
+                          if (['checkbox', 'radio', 'dropdown']
+                              .contains(question.type))
+                            Wrap(
+                              spacing: 8,
+                              children: question.options!.map((option) {
+                                return Chip(label: Text(option));
+                              }).toList(),
+                            ),
+                        ],
+                      ),
                     ),
                   );
                 },
