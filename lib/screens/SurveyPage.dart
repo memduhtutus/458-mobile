@@ -139,6 +139,7 @@ class _SurveyPageState extends State<SurveyPage> {
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: ElevatedButton.icon(
+              key: const Key('create_survey_button'),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -165,6 +166,7 @@ class _SurveyPageState extends State<SurveyPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
+                key: const Key('name_field'),
                 controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'Name',
@@ -179,6 +181,7 @@ class _SurveyPageState extends State<SurveyPage> {
               ),
               const SizedBox(height: 16),
               TextFormField(
+                key: const Key('surname_field'),
                 controller: _surnameController,
                 decoration: const InputDecoration(
                   labelText: 'Surname',
@@ -193,6 +196,7 @@ class _SurveyPageState extends State<SurveyPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                key: const Key('education_dropdown'),
                 value: _selectedEducation,
                 decoration: const InputDecoration(
                   labelText: 'Education Level',
@@ -226,6 +230,7 @@ class _SurveyPageState extends State<SurveyPage> {
                   ),
                   Expanded(
                     child: Slider(
+                      key: const Key('gender_slider'),
                       value: _sliderValue,
                       min: -100,
                       max: 100,
@@ -286,6 +291,7 @@ class _SurveyPageState extends State<SurveyPage> {
                   )),
               // Add new dropdown for AI model selection (always displaying "Select AI Model" as its hint)
               DropdownButtonFormField<String>(
+                key: const Key('ai_model_dropdown'),
                 value: null, // Always remain null to display the hint
                 decoration: const InputDecoration(
                   labelText: 'Select AI Model',
@@ -340,6 +346,7 @@ class _SurveyPageState extends State<SurveyPage> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
+                key: const Key('submit_survey_button'),
                 onPressed: _selectedAIModels.isEmpty || _isSubmitting
                     ? null
                     : _submitForm,

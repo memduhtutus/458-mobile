@@ -32,6 +32,7 @@ class _AiModelFormState extends State<AiModelForm> {
     final bool isOther = widget.modelName == 'Other';
 
     return Card(
+      key: Key('ai_model_form_${widget.modelName.replaceAll(' ', '_')}'),
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -52,6 +53,7 @@ class _AiModelFormState extends State<AiModelForm> {
                 else
                   const SizedBox.shrink(),
                 IconButton(
+                  key: Key('delete_model_${widget.modelName.replaceAll(' ', '_')}'),
                   icon: const Icon(Icons.close),
                   onPressed: widget.onDelete,
                   color: Colors.red,
@@ -61,6 +63,7 @@ class _AiModelFormState extends State<AiModelForm> {
             if (isOther) ...[
               const SizedBox(height: 16),
               TextField(
+                key: Key('custom_model_name_${widget.modelName.replaceAll(' ', '_')}'),
                 controller: _modelNameController,
                 decoration: const InputDecoration(
                   labelText: 'Model Name',
@@ -72,6 +75,7 @@ class _AiModelFormState extends State<AiModelForm> {
             ],
             const SizedBox(height: 16),
             TextField(
+              key: Key('model_cons_${widget.modelName.replaceAll(' ', '_')}'),
               decoration: const InputDecoration(
                 labelText: 'Defects or Cons',
                 hintText: 'Enter the defects or cons of this model...',

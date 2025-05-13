@@ -200,6 +200,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const Text(
+                      key: Key('survey_preview_title'),
                       'Survey Preview',
                       style: TextStyle(
                         fontSize: 20,
@@ -435,11 +436,13 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
+                          key: const Key('close_dialog_button'),
                           onPressed: () => Navigator.of(context).pop(),
                           child: const Text('Close'),
                         ),
                         const SizedBox(width: 8),
                         ElevatedButton(
+                          key: const Key('save_survey_dialog_button'),
                           onPressed: () {
                             Navigator.of(context).pop();
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -468,6 +471,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
         title: const Text('Create Survey'),
         actions: [
           IconButton(
+            key: const Key('save_survey_button'),
             icon: const Icon(Icons.save),
             onPressed: _saveSurvey,
           ),
@@ -485,6 +489,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     DropdownButton<String>(
+                      key: const Key('question_type_dropdown'),
                       value: _selectedQuestionType,
                       items: const [
                         DropdownMenuItem(
@@ -509,6 +514,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                     ),
                     const SizedBox(height: 16),
                     TextField(
+                      key: const Key('question_text_field'),
                       controller: _questionController,
                       decoration: const InputDecoration(
                         labelText: 'Question Text',
@@ -522,6 +528,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                         children: [
                           Expanded(
                             child: TextField(
+                              key: const Key('option_text_field'),
                               controller: _optionController,
                               decoration: const InputDecoration(
                                 labelText: 'Option',
@@ -530,6 +537,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                             ),
                           ),
                           IconButton(
+                            key: const Key('add_option_button'),
                             icon: const Icon(Icons.add),
                             onPressed: _addOption,
                           ),
@@ -565,6 +573,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                     _buildConditionalUI(),
                     const SizedBox(height: 16),
                     ElevatedButton(
+                      key: const Key('add_question_button'),
                       onPressed: _addQuestion,
                       child: const Text('Add Question'),
                     ),
