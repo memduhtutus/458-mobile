@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../components/AiModelForm.dart';
 import '../models/survey_form_data.dart';
 import '../api/api_service.dart';
+import 'CreateSurveyPage.dart';
 
 class SurveyPage extends StatefulWidget {
   const SurveyPage({super.key});
@@ -132,7 +133,29 @@ class _SurveyPageState extends State<SurveyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Survey'),
+        title: const Text('User testr'),
+        backgroundColor: Colors.blue,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CreateSurveyPage(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Create'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.blue,
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -307,7 +330,6 @@ class _SurveyPageState extends State<SurveyPage> {
                   labelText:
                       'What are the daily life benefits of using AI models?',
                   border: OutlineInputBorder(),
-                
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
