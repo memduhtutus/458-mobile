@@ -139,7 +139,7 @@ class _SurveyPageState extends State<SurveyPage> {
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: ElevatedButton.icon(
-              key: const Key('create_survey_button'),
+              key: ValueKey('create_survey_button'),
               onPressed: () {
                 Navigator.push(
                   context,

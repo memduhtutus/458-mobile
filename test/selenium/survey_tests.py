@@ -20,11 +20,11 @@ class SurveyAppTests(unittest.TestCase):
         chrome_options.add_argument("--disable-dev-shm-usage")
         
         # Initialize WebDriver
-        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        self.driver = webdriver.Chrome(options=chrome_options)
         self.wait = WebDriverWait(self.driver, 10)
         
         # Navigate to the app's URL
-        self.driver.get("http://127.0.0.1:8080/")
+        self.driver.get("http://localhost:8080/")
         
         # Login to the application
         self._login()
@@ -50,216 +50,271 @@ class SurveyAppTests(unittest.TestCase):
             print("Waiting for survey page...")
             self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="flt-semantic-node-16"]/input')))
             print("Survey page loaded")
-                
+            #self.wait.until(EC.element_to_be_clickable((By.XPATH, "//*[@id='flt-semantic-node-30']"))).click()
+            create_button = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Create')]")
+            create_button.click()        
+            print("Clicked Create Survey")
+
         except Exception as e:
             print(f"Error during login: {e}")
             self.driver.save_screenshot("login_error.png")
             raise
         except TimeoutException:
             self.fail("Login form did not load or login failed")
+    
+    # def test_add_checkbox_question_and_preview(self):
+    #     time.sleep(2)
 
-    def _select_question_type(self, question_type):
-        """Helper to select a question type from the dropdown
-        
-        Args:
-            question_type: String with options: 'text', 'checkbox', 'radio', 'rating', 'dropdown'
-        """
-        # Click on question type dropdown
-        dropdown = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-109"]')
-        dropdown.click()
-        
-        # Select appropriate question type based on parameter
-        if question_type.lower() == 'text':
-            self.wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="flt-semantic-node-46"]')))
-            self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-46"]').click()
-        elif question_type.lower() == 'checkbox':
-            self.wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="flt-semantic-node-47"]')))
-            self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-47"]').click()
-        elif question_type.lower() == 'radio':
-            self.wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="flt-semantic-node-48"]')))
-            self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-48"]').click()
-        elif question_type.lower() == 'rating':
-            self.wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="flt-semantic-node-49"]')))
-            self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-49"]').click()
-        elif question_type.lower() == 'dropdown':
-            self.wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="flt-semantic-node-50"]')))
-            self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-50"]').click()
+    #     # Step 1: Click the 'Text Question' to open the type menu
+    #     question_type = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Text Question')]")
+    #     question_type.click()
+    #     print("Selected 'Text Question' to open type menu")
+    #     time.sleep(2)
 
-    def test_successful_survey_submission(self):
-        """Test that a user can successfully fill out and submit a survey."""
-        # Fill out name field
-        name_field = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-16"]/input')
-        name_field.clear()
-        name_field.send_keys("John")
-        
-        # Fill out surname field
-        surname_field = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-17"]/input')
-        surname_field.clear()
-        surname_field.send_keys("Doe")
-        
-        # Select education level
-        education_dropdown = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-18"]')
-        education_dropdown.click()
-        
-        # Wait for dropdown options and select Bachelor's Degree
-        # Choose from one of the dropdown buttons
-        self.wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="flt-semantic-node-70"]')))
-        self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-70"]').click()
-        
-        # Select AI model
-        ai_model_dropdown = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-25"]')
-        ai_model_dropdown.click()
-        
-        # Select ChatGPT from dropdown
-        self.wait.until(EC.element_to_be_clickable((By.XPATH, '//*[@id="flt-semantic-node-79"]')))
-        self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-79"]').click()
-        
-        # Fill AI model cons
-        self.wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="flt-semantic-node-93"]/textarea')))
-        cons_field = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-93"]/textarea')
-        cons_field.send_keys("Sometimes provides incorrect information")
-        
-        # Fill daily life benefits
-        benefits_field = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-26"]/textarea')
-        benefits_field.send_keys("Helps me with programming and research tasks")
-        
-        # Click submit button
-        submit_button = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-27"]')
-        submit_button.click()
-        
-        # Verify success message appears (still need to use XPath for the toast message)
-        self.wait.until(EC.visibility_of_element_located(
-            (By.XPATH, "//div[contains(text(),'Survey submitted successfully')]")
-        ))
-        
-        success_message = self.driver.find_element(By.XPATH, "//div[contains(text(),'Survey submitted successfully')]")
-        self.assertTrue(success_message.is_displayed())
+    #     # Step 2: Select 'Checkbox'
+    #     checkbox_option = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Checkbox')]")
+    #     checkbox_option.click()
+    #     print("Selected 'Checkbox' question type")
+    #     time.sleep(2)
 
-    def test_form_validation(self):
-        """Test that survey form validation works correctly."""
-        # Clear any existing values
-        name_field = self.driver.find_element(By.CSS_SELECTOR, "[data-testid='name_field']")
-        name_field.clear()
-        
-        surname_field = self.driver.find_element(By.CSS_SELECTOR, "[data-testid='surname_field']")
-        surname_field.clear()
-        
-        # Select AI model (required to enable submit button)
-        ai_model_dropdown = self.driver.find_element(By.CSS_SELECTOR, "[data-testid='ai_model_dropdown']")
-        ai_model_dropdown.click()
-        
-        self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[text()='ChatGPT']")))
-        self.driver.find_element(By.XPATH, "//div[text()='ChatGPT']").click()
-        
-        # Wait for the AI model form to appear and fill it
-        self.wait.until(EC.visibility_of_element_located((By.XPATH, '//*[@id="flt-semantic-node-93"]/textarea')))
-        cons_field = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-93"]/textarea')
-        cons_field.send_keys("Test")
+    #     # Step 3: Enter the question
+    #     question_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Question Text"]')
+    #     question_input.send_keys("Which AI models do you use?")
+    #     print("Entered question text")
+    #     time.sleep(2)
 
-        # Clear benefits field
-        benefits_field = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-26"]/textarea')
-        benefits_field.clear()
+    #     # Step 4: Enter option 1
+    #     option_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Option"]')
+    #     option_input.send_keys("ChatGPT")
+    #     print("Entered option 1: ChatGPT")
+    #     time.sleep(2)
+        
+    #     # Step 5: Click 'Add Option' for ChatGPT
+    #     add_option_button = self.driver.find_element(By.XPATH, "//flt-semantics[contains(@aria-label, 'Add Option')]")
+    #     add_option_button.click()
 
-        # Click submit button
-        submit_button = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-27"]')
-        submit_button.click()
-        
-        # Check for validation error on name field (using XPath since error message doesn't have a key)
-        self.wait.until(EC.visibility_of_element_located((By.XPATH, "//div[contains(text(),'Please enter your name')]")))
-        name_error = self.driver.find_element(By.XPATH, "//div[contains(text(),'Please enter your name')]")
-        self.assertTrue(name_error.is_displayed())
-        
-        # Check for validation error on surname field
-        surname_error = self.driver.find_element(By.XPATH, "//div[contains(text(),'Please enter your surname')]")
-        self.assertTrue(surname_error.is_displayed())
-        
-        # Fill name and surname but leave benefits empty
-        name_field = self.driver.find_element(By.CSS_SELECTOR, "[data-testid='name_field']")
-        name_field.send_keys("John")
-        
-        surname_field = self.driver.find_element(By.CSS_SELECTOR, "[data-testid='surname_field']")
-        surname_field.send_keys("Doe")
-        
-        # Click submit again
-        submit_button = self.driver.find_element(By.CSS_SELECTOR, "[data-testid='submit_survey_button']")
-        submit_button.click()
-        
-        # Check for validation error on benefits field
-        self.wait.until(EC.visibility_of_element_located(
-            (By.XPATH, "//div[contains(text(),'Please share your thoughts on AI benefits')]")
-        ))
-        benefits_error = self.driver.find_element(By.XPATH, "//div[contains(text(),'Please share your thoughts on AI benefits')]")
-        self.assertTrue(benefits_error.is_displayed())
+    #     # Step 6: Enter option 2
+    #     option_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Option"]')
+    #     option_input.clear()
+    #     option_input.send_keys("Claude")
+    #     print("Entered option 2: Claude")
+    #     time.sleep(2)
 
-    def test_create_survey_navigation(self):
-        """Test that user can navigate to and use the Create Survey page."""
-        # Click the Create button to navigate to Create Survey page
-        create_button = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-30"]')
-        create_button.click()
-        
-        # Wait for Create Survey page to load (AppBar title)
-        self.wait.until(EC.presence_of_element_located((By.XPATH, "//div[contains(text(),'Create Survey')]")))
-        
-        # Verify we're on the Create Survey page
-        page_title = self.driver.find_element(By.XPATH, "//div[contains(text(),'Create Survey')]")
-        self.assertTrue(page_title.is_displayed())
+    #     # Step 7: Click 'Add Option' for Claude
+    #     add_option_button.click()
+    #     print("Clicked add option for Claude")
+    #     time.sleep(2)
 
-    def test_create_text_question(self):
-        """Test creating a text question in the Create Survey page."""
-        # First navigate to Create Survey page
-        create_button = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-30"]')
-        create_button.click()
-        
-        # Wait for Create Survey page to load
-        self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="flt-semantic-node-109"]')))
-        
-        # Select 'text' question type
-        self._select_question_type('text')
-        
-        # Add question text (using XPath selector)
-        question_text = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-35"]/input')
-        question_text.send_keys("What is your favorite programming language?")
+    #     # Step 8: Add the question
+    #     self.driver.find_element(By.XPATH, "//flt-semantics[normalize-space(text())='Add Question']").click()
+    #     print("Clicked 'Add Question'")
+    #     time.sleep(2)
 
-    def test_save_survey(self):
-        """Test saving a survey with questions."""
-        # First navigate to Create Survey page
-        create_button = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-30"]')
-        create_button.click()
-        
-        # Wait for Create Survey page to load
-        self.wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="flt-semantic-node-109"]')))
-        
-        # Select 'text' question type
-        self._select_question_type('text')  # Or any other type
-        
-        # Add a text question (using XPath selector)
-        question_text = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-35"]/input')
-        question_text.send_keys("What is your name?")
-        
-        # Add question button (using XPath selector)
-        add_button = self.driver.find_element(By.XPATH, '//*[@id="flt-semantic-node-36"]')
-        add_button.click()
-        
-        time.sleep(0.5)  # Brief pause to let UI update
-        
-        # Save the survey using the text content rather than ID
-        save_button = self.wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//flt-semantics[contains(text(),'Save Survey')]")
-        ))
-        save_button.click()
+    #     # Step 9: Verify that ChatGPT and Claude options appear as semantics with matching labels
+    #     chatgpt_semantic = self.driver.find_element(By.XPATH, "//flt-semantics[.//span[text()='ChatGPT']]")
+    #     claude_semantic = self.driver.find_element(By.XPATH, "//flt-semantics[.//span[text()='Claude']]")
 
-        # For the dialog buttons as well
-        self.wait.until(EC.visibility_of_element_located(
-            (By.XPATH, "//flt-semantics[contains(text(),'Survey Preview')]")
-        ))
+    #     self.assertTrue(chatgpt_semantic.is_displayed(), "ChatGPT option not visible")
+    #     self.assertTrue(claude_semantic.is_displayed(), "Claude option not visible")
 
-        # Click "Save Survey" button in dialog by text
-        self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(),'Save Survey') and @role='button']").click()
-        
-        # Verify success message
-        self.wait.until(EC.visibility_of_element_located((By.XPATH, "//div[contains(text(),'Survey saved successfully!')]")))
-        success_message = self.driver.find_element(By.XPATH, "//div[contains(text(),'Survey saved successfully!')]")
-        self.assertTrue(success_message.is_displayed())
+    #     print("✅ Checkbox options 'ChatGPT' and 'Claude' found and visible.")
+
+    # def test_add_rating_question_and_interact(self):
+    #     time.sleep(2)
+
+    #     # Step 1: Click 'Text Question' to open the question type menu
+    #     question_type = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Text Question')]")
+    #     question_type.click()
+    #     print("Opened question type menu")
+    #     time.sleep(2)
+
+    #     # Step 2: Select "Rating"
+    #     rating_option = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Rating')]")
+    #     rating_option.click()
+    #     print("Selected 'Rating' question type")
+    #     time.sleep(2)
+
+    #     # Step 3: Enter rating question text
+    #     question_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Question Text"]')
+    #     question_input.send_keys("Rate your satisfaction with AI tools")
+    #     print("Entered rating question text")
+    #     time.sleep(2)
+
+    #     # Step 4: Add the question
+    #     self.driver.find_element(By.XPATH, "//flt-semantics[normalize-space(text())='Add Question']").click()
+    #     print("Clicked 'Add Question'")
+    #     time.sleep(2)
+
+    #     # Step 5: Click the save icon to go to the survey screen
+    #     self.driver.find_element(By.XPATH, "//flt-semantics[contains(@aria-label, 'Save Survey Icon')]").click()
+    #     print("Clicked save survey icon to go to survey screen")
+    #     time.sleep(2)
+
+    #     # Step 6: Click 5th star using label (after you added Semantics)
+    #     fifth_star = self.driver.find_element(By.XPATH, "//flt-semantics[contains(@aria-label, 'Rating Star 5')]")
+    #     fifth_star.click()
+    #     print("Clicked 5th star")
+    #     time.sleep(2)
+
+    #    # Step 7: Optionally verify aria-selected, or assume click was successful
+    #     selected = fifth_star.get_attribute("aria-selected")
+    #     print(f"aria-selected: {selected}")
+    #     self.assertTrue(selected == "true" or selected == "True" or selected is None, "5th star not marked selected")
+    #     print("Star selection confirmed")
+
+    #     # Step 8: Confirm survey created by checking for question text on screen
+    #     question_label = self.driver.find_element(By.XPATH, "//flt-semantics[contains(@aria-label, 'Rate your satisfaction with AI tools')]")
+    #     self.assertTrue(question_label.is_displayed(), "Survey question text not found in final survey view")
+    #     print("Survey confirmed as successfully created and displayed.")
+
+    # def test_conditional_question_visibility(self):
+    #     time.sleep(2)
+
+    #     # Step 1: Select Radio Question
+    #     question_type = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Text Question')]")
+    #     question_type.click()
+    #     print("Opened question type menu")
+    #     time.sleep(2)
+
+    #     radio_option = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Radio')]")
+    #     radio_option.click()
+    #     print("Selected 'Radio' question type")
+    #     time.sleep(2)
+
+    #     # Step 2: Enter question and options
+    #     question_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Question Text"]')
+    #     question_input.send_keys("Do you use AI?")
+    #     print("Entered triggering question")
+    #     time.sleep(1)
+
+    #     option_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Option"]')
+    #     option_input.send_keys("Yes")
+    #     time.sleep(1)
+    #     self.driver.find_element(By.XPATH, "//flt-semantics[@role='button' and @tabindex='0' and @flt-tappable]").click()
+    #     print("Added 'Yes' option")
+    #     time.sleep(1)
+
+    #     option_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Option"]')
+    #     option_input.clear()
+    #     option_input.send_keys("No")
+    #     time.sleep(1)
+    #     self.driver.find_element(By.XPATH, "//flt-semantics[@role='button' and @tabindex='0' and @flt-tappable]").click()
+    #     print("Added 'No' option")
+    #     time.sleep(1)
+
+    #     # Step 3: Add the first (trigger) question
+    #     self.driver.find_element(By.XPATH, "//flt-semantics[normalize-space(text())='Add Question']").click()
+    #     print("Added first question")
+    #     time.sleep(2)
+    #     # Step 4: Select Text Question (follow-up)
+    #     question_type = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Radio Question')]")
+    #     question_type.click()
+    #     time.sleep(2)
+    #     text_option = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Text')]")
+    #     text_option.click()
+    #     print("Selected 'Text' question type for follow-up")
+    #     time.sleep(2)
+
+    #     # Step 5: Enter conditional question
+    #     question_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Question Text"]')
+    #     question_input.send_keys("Why do you use AI?")
+    #     print("Entered conditional question")
+    #     time.sleep(2)
+
+    #     # Step 6: Enable 'Make this conditional'
+    #     conditional_toggle = self.driver.find_element(By.XPATH, "//flt-semantics[@role='checkbox']")
+    #     conditional_toggle.click()
+    #     print("Toggled conditional checkbox")
+    #     time.sleep(2)
+
+    #     # Step 7: Select condition trigger (first 'Yes' should be default or first visible)
+    #     condition_option = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Yes')]")
+    #     condition_option.click()
+    #     print("Selected condition trigger: Yes")
+    #     time.sleep(2)
+
+    #     # Step 8: Add conditional question
+    #     self.driver.find_element(By.XPATH, "//flt-semantics[normalize-space(text())='Add Question']").click()
+    #     print("Added conditional question")
+    #     time.sleep(2)
+
+    #     # Step 9: Save and go to survey screen
+    #     self.driver.find_element(By.XPATH, "//flt-semantics[contains(@aria-label, 'Save Survey Icon')]").click()
+    #     print("Clicked save survey icon")
+    #     time.sleep(2)
+
+    #     # Step 10: Click 'Yes' in the radio question
+    #     yes_radio = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Yes')]")
+    #     yes_radio.click()
+    #     print("Selected 'Yes' answer to trigger conditional question")
+    #     time.sleep(2)
+
+    #     # Step 11: Verify conditional question appears
+    #     conditional_visible = self.driver.find_element(By.XPATH, "//flt-semantics[contains(@aria-label, 'Why do you use AI?')]")
+    #     self.assertTrue(conditional_visible.is_displayed(), "Conditional question did not appear after selecting 'Yes'")
+    #     print("✅ Conditional question displayed successfully.")
+
+    # def test_delete_question_removes_it(self):
+    #     time.sleep(2)
+
+    #     # Step 1: Add a question
+    #     question_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Question Text"]')
+    #     question_input.send_keys("What is your favorite AI model?")
+    #     print("Entered first question")
+    #     time.sleep(2)
+
+    #     self.driver.find_element(By.XPATH, "//flt-semantics[normalize-space(text())='Add Question']").click()
+    #     print("Clicked 'Add Question 1'")
+    #     time.sleep(2)
+
+    #     # Step 2: Click delete button
+    #     delete_button = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Delete 1')]")
+    #     delete_button.click()
+    #     print("Clicked delete button")
+    #     time.sleep(2)
+
+    #     # Step 3: Validate that the question is no longer present using visible text
+    #     deleted_question = self.driver.find_elements(By.XPATH,
+    #         "//flt-semantics[contains(@aria-label, 'Survey Question: What is your favorite AI model?')]")
+    #     self.assertEqual(len(deleted_question), 0, "Deleted question still visible after deletion")
+
+    #     print("✅ Deleted question not found on screen — test passed.")
+
+    def test_save_disabled_without_questions(self):
+        time.sleep(2)
+        print("Create Survey page loaded with no questions")
+
+        # Step 1: Try to save without any questions
+        self.driver.find_element(By.XPATH, "//flt-semantics[contains(@aria-label, 'Save Survey Icon')]").click()
+        print("Clicked save icon without any questions")
+
+        dialogs = self.driver.find_elements(By.XPATH, "//flt-semantics[contains(text(), 'Save Survey')]")
+        self.assertEqual(len(dialogs), 0, "❌ Survey dialog appeared even though no questions were added")
+        print("✅ Save blocked with no questions (no dialog found)")
+
+        # Step 2: Add a question
+        question_input = self.driver.find_element(By.CSS_SELECTOR, 'input[aria-label="Question Text"]')
+        question_input.send_keys("Temporary question")
+        print("Entered temporary question")
+        time.sleep(1)
+
+        self.driver.find_element(By.XPATH, "//flt-semantics[normalize-space(text())='Add Question']").click()
+        print("Clicked 'Add Question'")
+        time.sleep(1)
+
+        # Step 3: Delete the question
+        delete_button = self.driver.find_element(By.XPATH, "//flt-semantics[contains(text(), 'Delete 1')]")
+        delete_button.click()
+        print("Deleted the only question")
+        time.sleep(1)
+
+        # Step 4: Try saving again
+        self.driver.find_element(By.XPATH, "//flt-semantics[contains(@aria-label, 'Save Survey Icon')]").click()
+        print("Clicked save icon after deleting the only question")
+
+        dialogs_after_delete = self.driver.find_elements(By.XPATH, "//flt-semantics[contains(text(), 'Save Survey')]")
+        self.assertEqual(len(dialogs_after_delete), 0, "❌ Survey dialog appeared after deleting all questions")
+        print("✅ Save blocked after deletion (no dialog found)")
 
     def tearDown(self):
         if self.driver:

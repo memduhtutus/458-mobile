@@ -383,23 +383,24 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                                               .containsKey(index)) {
                                             ratingStates[index] = 0;
                                           }
-
-                                          return IconButton(
-                                            icon: Icon(
-                                              starIndex <
-                                                      (ratingStates[index] ?? 0)
-                                                  ? Icons.star
-                                                  : Icons.star_border,
-                                              color: Colors.amber,
-                                            ),
-                                            onPressed: () {
-                                              setState(() {
-                                                ratingStates[index] =
-                                                    starIndex + 1;
-                                              });
-                                            },
-                                          );
-                                        }),
+                                          return Semantics(
+                                              label: 'Rating Star ${starIndex + 1}',
+                                              button: true,
+                                              child: IconButton(
+                                                icon: Icon(
+                                                  starIndex < (ratingStates[index] ?? 0)
+                                                      ? Icons.star
+                                                      : Icons.star_border,
+                                                  color: Colors.amber,
+                                                ),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    ratingStates[index] = starIndex + 1;
+                                                  });
+                                                },
+                                              ),
+                                            );
+                                          }),
                                       )
                                     else if (question.type == 'dropdown' &&
                                         question.options != null)
@@ -470,10 +471,14 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
       appBar: AppBar(
         title: const Text('Create Survey'),
         actions: [
-          IconButton(
-            key: const Key('save_survey_button'),
-            icon: const Icon(Icons.save),
-            onPressed: _saveSurvey,
+          Semantics(
+            label: 'Save Survey Icon',
+            button: true,
+            child: IconButton(
+              key: const Key('save_survey_button'),
+              icon: const Icon(Icons.save),
+              onPressed: _saveSurvey,
+            ),
           ),
         ],
       ),
@@ -536,10 +541,14 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                               ),
                             ),
                           ),
-                          IconButton(
-                            key: const Key('add_option_button'),
-                            icon: const Icon(Icons.add),
-                            onPressed: _addOption,
+                          Semantics(
+                            label: 'Add Option',
+                            button: true,
+                            child: IconButton(
+                              key: const Key('add_option_button'),
+                              icon: const Icon(Icons.add),
+                              onPressed: _addOption,
+                            ),
                           ),
                         ],
                       ),
@@ -589,14 +598,18 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                   final question = _questions[index];
                   return Card(
                     child: ListTile(
-                      title: Text(question.text),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete),
+                      title: Semantics(
+                        label: 'Survey Question: ${question.text}',
+                        child: Text(question.text),
+                      ),
+                      trailing: TextButton(
+                        key: Key('delete_question_$index'),
                         onPressed: () {
                           setState(() {
                             _questions.removeAt(index);
                           });
                         },
+                        child: Text('Delete ${index + 1}'),
                       ),
                       isThreeLine: ['checkbox', 'radio', 'dropdown']
                               .contains(question.type) ||
