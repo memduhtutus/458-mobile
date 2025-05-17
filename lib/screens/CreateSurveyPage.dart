@@ -503,7 +503,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                             value: 'checkbox',
                             child: Text('Checkbox Question')),
                         DropdownMenuItem(
-                            value: 'radio', child: Text('Radio Question')),
+                            value: 'radio', child: Text('Multiple-choice Question')),
                         DropdownMenuItem(
                             value: 'rating', child: Text('Rating Question')),
                         DropdownMenuItem(
