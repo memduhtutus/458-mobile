@@ -17,7 +17,7 @@ Name         : {name} {surname}
 Education    : {education}
 Gender       : {gender}
 
-AI Models & Their Cons:
+AI Models & Their Cons or Defects:
 """
     for model in ai_models:
         body += f" - {model['modelName']}: {model['cons']}\n"
