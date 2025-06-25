@@ -22,6 +22,7 @@ class _SurveyPageState extends State<SurveyPage> {
 
   // List to store selected AI models
   final List<String> _selectedAIModels = [];
+  final String selectedDevive = "Mobile";
 
   final Map<String, String> _aiModelResponses = {};
   final Map<String, String> _customModelNames = {};
